@@ -2,6 +2,7 @@ import Web3 from "web3"
 import Abi from "./kudosAbi.json"
 import {AbiItem} from "web3-utils"
 import dotenv from "dotenv";
+import { sendToSlack } from "./slack";
 
 export function watchKudosEvents() {
     dotenv.config();
@@ -44,8 +45,15 @@ export function watchKudosEvents() {
     .on('connected', (subscriptionId: string) => {
         console.log(`Connected, subscription: ${subscriptionId}`);
     })
-    .on('data', (event: any) => {
+    .on('data', async (event: any) => {
         console.log(event);
+        if (event.event == 'RegisteredKudos') {
+            console.log(`TokenId ${event.returnValues.tokenId} registered`);
+            await sendToSlack("Registered", event.returnValues.tokenId, event.returnValues.creator)
+        } else if (event.event == 'TransferSingle') {
+            console.log(`TokenId ${event.returnValues.id} transferred to ${event.returnValues.to}`);
+            await sendToSlack("Claimed", event.returnValues.id, event.returnValues.to)
+        }
     })
     .on('error', (error: any) => {
         console.log(error);
