@@ -4,6 +4,11 @@ import {AbiItem} from "web3-utils"
 import dotenv from "dotenv";
 import { sendToSlack } from "./slack";
 
+export const enum KudosEventType {
+    CLAIMED = "Claimed",
+    REGISTERED = "Registered"
+}
+
 export function watchKudosEvents() {
     dotenv.config();
 
@@ -49,10 +54,10 @@ export function watchKudosEvents() {
         console.log(event);
         if (event.event == 'RegisteredKudos') {
             console.log(`TokenId ${event.returnValues.tokenId} registered`);
-            await sendToSlack("Registered", event.returnValues.tokenId, event.returnValues.creator)
+            await sendToSlack(KudosEventType.REGISTERED, event.returnValues.tokenId, event.returnValues.creator)
         } else if (event.event == 'TransferSingle') {
             console.log(`TokenId ${event.returnValues.id} transferred to ${event.returnValues.to}`);
-            await sendToSlack("Claimed", event.returnValues.id, event.returnValues.to)
+            await sendToSlack(KudosEventType.CLAIMED, event.returnValues.id, event.returnValues.to)
         }
     })
     .on('error', (error: any) => {
